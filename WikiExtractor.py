@@ -109,6 +109,10 @@ version = '2.75'
 options = SimpleNamespace(
 
     ##
+    # skip the <doc> tags, outputs only the text of each page.
+    skip_doc_tags = False,
+
+    ##
     # Defined in <siteinfo>
     # We include as default Template, when loading external template file.
     knownNamespaces = {'Template': 10},
@@ -569,13 +573,15 @@ class Extractor(object):
             footer = "\n</doc>\n"
             if out == sys.stdout:   # option -a or -o -
                 header = header.encode('utf-8')
-            out.write(header)
+            if not options.skip_doc_tags:
+                out.write(header)
             for line in text:
                 if out == sys.stdout:   # option -a or -o -
                     line = line.encode('utf-8')
                 out.write(line)
                 out.write('\n')
-            out.write(footer)
+            if not options.skip_doc_tags:
+                out.write(footer)
 
     def extract(self, out):
         """
@@ -3139,8 +3145,12 @@ def main():
     groupS.add_argument("-v", "--version", action="version",
                         version='%(prog)s ' + version,
                         help="print program version")
+    groupS.add_argument("-t", "--textonly", action="store_true",
+                        help="omits <doc> tags, outputs the text only")
 
     args = parser.parse_args()
+
+    options.skip_doc_tags = args.textonly
 
     options.keepLinks = args.links
     options.keepSections = args.sections
